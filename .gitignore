@@ -1,6 +1,9 @@
 # すべてを対象外
 *
 
+# フォルダは除外しない
+!*/
+
 # 例外 (git対象)
 !/.gitignore
 !/.go.mod
@@ -13,6 +16,6 @@
 !./internal/
 !./internal/**
 
-# !./example/
-# !./example/**
+!./example/
+!./example/**
 
