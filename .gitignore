@@ -1,0 +1,18 @@
+# すべてを対象外
+*
+
+# 例外 (git対象)
+!/.gitignore
+!/.go.mod
+!/.go.sum
+
+
+!./external/
+!./external/**
+
+!./internal/
+!./internal/**
+
+# !./example/
+# !./example/**
+
