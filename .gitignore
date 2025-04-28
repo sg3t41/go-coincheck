@@ -5,16 +5,15 @@
 !*/
 
 # 例外 (git対象)
-!/.gitignore
-!/.go.mod
-!/.go.sum
+!go.mod
+!go.sum
 
 
-!./external/
-!./external/**
+!external/
+!external/**
 
-!./internal/
-!./internal/**
+!internal/
+!internal/**
 
 !example/
 !example/**
