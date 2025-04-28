@@ -16,6 +16,6 @@
 !./internal/
 !./internal/**
 
-!./example/
-!./example/**
+!example/
+!example/**
 
