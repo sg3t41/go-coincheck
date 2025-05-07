@@ -6,10 +6,7 @@ import (
 
 	"github.com/sg3t41/go-coincheck/external/dto/input"
 	"github.com/sg3t41/go-coincheck/external/dto/output"
-	"github.com/sg3t41/go-coincheck/internal/application"
-	"github.com/sg3t41/go-coincheck/internal/domain"
 	"github.com/sg3t41/go-coincheck/internal/infrastructure/client"
-	"github.com/sg3t41/go-coincheck/internal/infrastructure/repository"
 	"github.com/sg3t41/go-coincheck/internal/interfaces/api/accounts"
 	"github.com/sg3t41/go-coincheck/internal/interfaces/api/accounts/balance"
 	"github.com/sg3t41/go-coincheck/internal/interfaces/api/exchange/orders"
@@ -68,41 +65,23 @@ func New(key, secret string) (Coincheck, error) {
 		client.WithCredentials(key, secret),
 	}
 
-	coincheckClient, err := client.New(options...)
+	c, err := client.New(options...)
 	if err != nil {
 		return nil, err
 	}
 
-	c := &coincheck{
-
-		accounts: application.NewAccounts(
-			domain.NewAccountsService(
-				repository.NewAccounts(
-					coincheckClient,
-				),
-			),
-		),
-
-		balance: application.NewBalance(
-			domain.NewBalanceService(
-				repository.NewBalance(
-					coincheckClient,
-				),
-			),
-		),
-
-		cancel_status: cancelstatus.New(coincheckClient),
-
-		orders:                  orders.New(coincheckClient),
-		exchange_status:         exchangestatus.New(coincheckClient),
-		orders_rate:             ordersrate.New(coincheckClient),
-		opens:                   opens.New(coincheckClient),
-		trades:                  trades.New(coincheckClient),
-		transactions:            transactions.New(coincheckClient),
-		transactions_pagination: transactionspagination.New(coincheckClient),
-		reference_rate:          referencerate.New(coincheckClient),
-		ticker:                  ticker.New(coincheckClient),
-	}
-
-	return c, nil
+	return &coincheck{
+		accounts:                accounts.New(c),
+		balance:                 balance.New(c),
+		cancel_status:           cancelstatus.New(c),
+		orders:                  orders.New(c),
+		exchange_status:         exchangestatus.New(c),
+		orders_rate:             ordersrate.New(c),
+		opens:                   opens.New(c),
+		trades:                  trades.New(c),
+		transactions:            transactions.New(c),
+		transactions_pagination: transactionspagination.New(c),
+		reference_rate:          referencerate.New(c),
+		ticker:                  ticker.New(c),
+	}, nil
 }
