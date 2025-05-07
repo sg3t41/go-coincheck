@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -23,6 +24,9 @@ func main() {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*1)
 	defer cancel()
 
-	ac, _ := coincheck.Balance(ctx)
+	ac, err := coincheck.Balance(ctx)
+	if err != nil {
+		fmt.Println(err)
+	}
 	ac.Print()
 }
