@@ -4,17 +4,25 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/sg3t41/go-coincheck/external/coincheck"
 )
 
-const (
-	key    = ""
-	secret = ""
+var (
+	key    string
+	secret string
 )
 
+func init() {
+	key = os.Getenv("COINCHECK_ACCESS_KEY")
+	secret = os.Getenv("COINCHECK_SECRET_ACCESS_KEY")
+}
+
 func main() {
+	fmt.Println(key)
+	fmt.Println(secret)
 	coincheck, err := coincheck.New(key, secret)
 	if err != nil {
 		log.Fatalln(err)
@@ -27,6 +35,7 @@ func main() {
 	ac, err := coincheck.Balance(ctx)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 	ac.Print()
 }
