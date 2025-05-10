@@ -21,20 +21,24 @@ func init() {
 }
 
 func main() {
-	fmt.Println(key)
-	fmt.Println(secret)
 	coincheck, err := coincheck.New(key, secret)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, time.Second*1)
-	defer cancel()
 
-	_, err = coincheck.WebSocketTrade(ctx)
+	msgs, err := coincheck.WebSocketTrade(ctx)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	// メッセージを受け取る
+	go func() {
+		for msg := range msgs {
+			fmt.Printf("%s\n", msg)
+		}
+	}()
+
+	time.Sleep(100000 * time.Second)
 }
