@@ -6,6 +6,7 @@ import (
 
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 	"github.com/sg3t41/go-coincheck/internal/client"
+	http_client "github.com/sg3t41/go-coincheck/internal/client/http"
 )
 
 type Balance interface {
@@ -21,7 +22,7 @@ func New(client client.Client) Balance {
 }
 
 func (t balance) GET(ctx context.Context) (*output.Balance, error) {
-	req, err := t.client.CreateRequest(ctx, client.RequestInput{
+	req, err := t.client.CreateRequest(ctx, http_client.RequestInput{
 		Method:  http.MethodGet,
 		Path:    "/api/accounts/balance",
 		Private: true,

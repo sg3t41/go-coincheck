@@ -7,6 +7,7 @@ import (
 	"github.com/sg3t41/go-coincheck/external/dto/input"
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 	"github.com/sg3t41/go-coincheck/internal/client"
+	http_client "github.com/sg3t41/go-coincheck/internal/client/http"
 )
 
 var endpoint = "/api/order_books"
@@ -24,7 +25,7 @@ func New(client client.Client) OrderBooks {
 }
 
 func (t orderBooks) GET(ctx context.Context, in input.GetOrderBooks) (*output.GetOrderBooks, error) {
-	req, err := t.client.CreateRequest(ctx, client.RequestInput{
+	req, err := t.client.CreateRequest(ctx, http_client.RequestInput{
 		Method: http.MethodGet,
 		Path:   endpoint,
 		QueryParam: map[string]string{

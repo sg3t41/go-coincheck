@@ -2,7 +2,6 @@ package coincheck
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/sg3t41/go-coincheck/external/dto/input"
 	"github.com/sg3t41/go-coincheck/external/dto/output"
@@ -20,9 +19,12 @@ import (
 	"github.com/sg3t41/go-coincheck/internal/api/http/ticker"
 	"github.com/sg3t41/go-coincheck/internal/api/http/trades"
 	"github.com/sg3t41/go-coincheck/internal/client"
+
+	ws_trades "github.com/sg3t41/go-coincheck/internal/api/ws/trades"
 )
 
 type Coincheck interface {
+	// rests
 	Ticker(context.Context, input.GetTicker) (*output.GetTicker, error)
 	Accounts(context.Context) (*output.Accounts, error)
 	Balance(context.Context) (*output.Balance, error)
@@ -40,9 +42,13 @@ type Coincheck interface {
 	CreateOrder(context.Context, input.CreateOrder) (*output.CreateOrder, error)
 	CancelOrder(context.Context, input.CancelOrder) (*output.CancelOrder, error)
 	CancelStatus(context.Context, input.CancelStatus) (*output.CancelStatus, error)
+
+	// websockets
+	WebSocketTrade(context.Context) (any, error)
 }
 
 type coincheck struct {
+	// rests
 	accounts                accounts.Accounts
 	cancel_status           cancelstatus.CancelStatus
 	orders                  orders.Orders
@@ -56,21 +62,19 @@ type coincheck struct {
 	order_books             orderbooks.OrderBooks
 	reference_rate          referencerate.ReferenceRate
 	ticker                  ticker.Ticker
+
+	// websockets
+	ws_trades ws_trades.WSTrades
 }
 
 func New(key, secret string) (Coincheck, error) {
-	options := []client.Option{
-		client.WithHTTPClient(http.DefaultClient),
-		client.WithBaseURL("https://coincheck.com"),
-		client.WithCredentials(key, secret),
-	}
-
-	c, err := client.New(options...)
+	c, err := client.New(key, secret)
 	if err != nil {
 		return nil, err
 	}
 
 	return &coincheck{
+		//rests
 		accounts:                accounts.New(c),
 		balance:                 balance.New(c),
 		cancel_status:           cancelstatus.New(c),
@@ -83,5 +87,8 @@ func New(key, secret string) (Coincheck, error) {
 		transactions_pagination: transactionspagination.New(c),
 		reference_rate:          referencerate.New(c),
 		ticker:                  ticker.New(c),
+
+		// websockets
+		ws_trades: ws_trades.New(c),
 	}, nil
 }

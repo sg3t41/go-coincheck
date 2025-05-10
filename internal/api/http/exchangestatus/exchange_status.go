@@ -7,6 +7,7 @@ import (
 	"github.com/sg3t41/go-coincheck/external/dto/input"
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 	"github.com/sg3t41/go-coincheck/internal/client"
+	http_client "github.com/sg3t41/go-coincheck/internal/client/http"
 )
 
 var endpoint = "/api/exchange_status"
@@ -24,7 +25,7 @@ func New(client client.Client) ExchangeStatus {
 }
 
 func (es exchangeStatus) GET(ctx context.Context, i input.ExchangeStatus) (*output.ExchangeStatus, error) {
-	req, err := es.client.CreateRequest(ctx, client.RequestInput{
+	req, err := es.client.CreateRequest(ctx, http_client.RequestInput{
 		Method: http.MethodGet,
 		Path:   endpoint,
 		QueryParam: map[string]string{

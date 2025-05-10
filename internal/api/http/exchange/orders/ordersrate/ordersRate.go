@@ -8,6 +8,7 @@ import (
 	"github.com/sg3t41/go-coincheck/external/dto/input"
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 	"github.com/sg3t41/go-coincheck/internal/client"
+	http_client "github.com/sg3t41/go-coincheck/internal/client/http"
 )
 
 type OrdersRate interface {
@@ -39,7 +40,7 @@ func (r ordersRate) GET(ctx context.Context, params input.OrdersRate) (*output.O
 		queryParams["amount"] = strconv.FormatFloat(params.Amount, 'f', -1, 64)
 	}
 
-	req, err := r.client.CreateRequest(ctx, client.RequestInput{
+	req, err := r.client.CreateRequest(ctx, http_client.RequestInput{
 		Method:     http.MethodGet,
 		Path:       "/api/exchange/orders/rate",
 		QueryParam: queryParams,

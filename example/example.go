@@ -32,10 +32,9 @@ func main() {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*1)
 	defer cancel()
 
-	ac, err := coincheck.Balance(ctx)
+	_, err = coincheck.WebSocketTrade(ctx)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
-	ac.Print()
+
 }

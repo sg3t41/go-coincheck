@@ -9,6 +9,7 @@ import (
 	"github.com/sg3t41/go-coincheck/external/dto/input"
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 	"github.com/sg3t41/go-coincheck/internal/client"
+	http_client "github.com/sg3t41/go-coincheck/internal/client/http"
 )
 
 type CancelStatus interface {
@@ -27,7 +28,7 @@ func New(client client.Client) CancelStatus {
 }
 
 func (c cancelStatus) GET(ctx context.Context, in input.CancelStatus) (*output.CancelStatus, error) {
-	req, err := c.client.CreateRequest(ctx, client.RequestInput{
+	req, err := c.client.CreateRequest(ctx, http_client.RequestInput{
 		Method:  http.MethodGet,
 		Path:    "/api/exchange/orders/cancel_status?id=" + strconv.Itoa(in.ID),
 		Private: true,

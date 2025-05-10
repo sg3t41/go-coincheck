@@ -8,6 +8,7 @@ import (
 	"github.com/sg3t41/go-coincheck/external/dto/input"
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 	"github.com/sg3t41/go-coincheck/internal/client"
+	http_client "github.com/sg3t41/go-coincheck/internal/client/http"
 )
 
 type TransactionsPagination interface {
@@ -27,7 +28,7 @@ func New(client client.Client) TransactionsPagination {
 // GetPagination は取引履歴（ページネーション）を取得する関数
 func (t transactionsPagination) GET(ctx context.Context, i input.TransactionsPagination) (*output.TransactionsPagination, error) {
 	// リクエストを作成
-	req, err := t.client.CreateRequest(ctx, client.RequestInput{
+	req, err := t.client.CreateRequest(ctx, http_client.RequestInput{
 		Method: http.MethodGet,
 		Path:   "/api/exchange/orders/transactions_pagination",
 		QueryParam: map[string]string{

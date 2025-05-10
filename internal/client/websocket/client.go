@@ -1,4 +1,4 @@
-package client
+package websocket
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 type WebSocketClient interface {
 	Connect(ctx context.Context) error
 	Subscribe(channel string) error
-	ReadMessages(handler func([]byte)) error
+	ReadMessages(context.Context, func([]byte)) error
 	Close() error
 }
 
@@ -25,12 +25,12 @@ type webSocketClient struct {
 	readTimeout time.Duration
 }
 
-func NewWebSocketClient(url string) WebSocketClient {
+func NewWebSocketClient() (WebSocketClient, error) {
 	return &webSocketClient{
-		url:         url,
+		url:         "wss://ws-api.coincheck.com/",
 		subscribed:  make(map[string]bool),
 		readTimeout: 10 * time.Second,
-	}
+	}, nil
 }
 
 func (c *webSocketClient) Connect(ctx context.Context) error {
@@ -73,14 +73,20 @@ func (c *webSocketClient) Subscribe(channel string) error {
 	return nil
 }
 
-func (c *webSocketClient) ReadMessages(handler func([]byte)) error {
+func (c *webSocketClient) ReadMessages(ctx context.Context, handler func([]byte)) error {
 	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+		}
+
 		c.conn.SetReadDeadline(time.Now().Add(c.readTimeout))
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			return err
 		}
-		go handler(message) // Process message in a separate goroutine
+		go handler(message)
 	}
 }
 

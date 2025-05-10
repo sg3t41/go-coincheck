@@ -8,6 +8,7 @@ import (
 	"github.com/sg3t41/go-coincheck/external/dto/input"
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 	"github.com/sg3t41/go-coincheck/internal/client"
+	http_client "github.com/sg3t41/go-coincheck/internal/client/http"
 )
 
 type Ticker interface {
@@ -29,7 +30,7 @@ func New(client client.Client) Ticker {
 // 可視性: パブリック
 // Pair を指定しない場合は、デフォルトで btc_jpy の情報を取得する
 func (t ticker) GET(ctx context.Context, in input.GetTicker) (*output.GetTicker, error) {
-	req, err := t.client.CreateRequest(ctx, client.RequestInput{
+	req, err := t.client.CreateRequest(ctx, http_client.RequestInput{
 		Method: http.MethodGet,
 		Path:   "/api/ticker",
 		QueryParam: map[string]string{

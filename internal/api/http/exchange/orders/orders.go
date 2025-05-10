@@ -11,6 +11,7 @@ import (
 	"github.com/sg3t41/go-coincheck/external/dto/input"
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 	"github.com/sg3t41/go-coincheck/internal/client"
+	http_client "github.com/sg3t41/go-coincheck/internal/client/http"
 )
 
 type Orders interface {
@@ -31,7 +32,7 @@ func New(client client.Client) Orders {
 }
 
 func (o orders) GET(ctx context.Context, in input.GetOrder) (*output.GetOrder, error) {
-	req, err := o.client.CreateRequest(ctx, client.RequestInput{
+	req, err := o.client.CreateRequest(ctx, http_client.RequestInput{
 		Method:  http.MethodGet,
 		Path:    "/api/exchange/orders/" + strconv.Itoa(in.ID),
 		Private: true,
@@ -61,7 +62,7 @@ func (o orders) POST(ctx context.Context, in input.CreateOrder) (*output.CreateO
 		return nil, err
 	}
 
-	req, err := o.client.CreateRequest(ctx, client.RequestInput{
+	req, err := o.client.CreateRequest(ctx, http_client.RequestInput{
 		Method:  http.MethodPost,
 		Path:    "/api/exchange/orders",
 		Body:    bytes.NewBuffer(bodyJSON),
@@ -79,7 +80,7 @@ func (o orders) POST(ctx context.Context, in input.CreateOrder) (*output.CreateO
 }
 
 func (o orders) DELETE(ctx context.Context, in input.CancelOrder) (*output.CancelOrder, error) {
-	req, err := o.client.CreateRequest(ctx, client.RequestInput{
+	req, err := o.client.CreateRequest(ctx, http_client.RequestInput{
 		Method:  http.MethodDelete,
 		Path:    "/api/exchange/orders/" + strconv.Itoa(in.ID),
 		Private: true,
