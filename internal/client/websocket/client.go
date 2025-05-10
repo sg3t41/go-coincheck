@@ -14,6 +14,7 @@ type WebSocketClient interface {
 	Connect(ctx context.Context) error
 	Subscribe(channel string) error
 	ReadMessages(context.Context, func([]byte)) error
+	Ping() error // Pingメソッドを追加
 	Close() error
 }
 
@@ -23,6 +24,7 @@ type webSocketClient struct {
 	mu          sync.Mutex
 	subscribed  map[string]bool
 	readTimeout time.Duration
+	pingPeriod  time.Duration
 }
 
 func NewWebSocketClient() (WebSocketClient, error) {
@@ -30,6 +32,7 @@ func NewWebSocketClient() (WebSocketClient, error) {
 		url:         "wss://ws-api.coincheck.com/",
 		subscribed:  make(map[string]bool),
 		readTimeout: 10 * time.Second,
+		pingPeriod:  5 * time.Second, // Pingを送信する間隔
 	}, nil
 }
 
@@ -44,6 +47,15 @@ func (c *webSocketClient) Connect(ctx context.Context) error {
 	}
 	c.conn = conn
 	log.Println("WebSocket connected to", c.url)
+
+	// Set Pong handler
+	c.conn.SetReadDeadline(time.Now().Add(c.readTimeout))
+	c.conn.SetPongHandler(func(appData string) error {
+		log.Println("Pong received")
+		c.conn.SetReadDeadline(time.Now().Add(c.readTimeout))
+		return nil
+	})
+
 	return nil
 }
 
@@ -88,6 +100,23 @@ func (c *webSocketClient) ReadMessages(ctx context.Context, handler func([]byte)
 		}
 		go handler(message)
 	}
+}
+
+func (c *webSocketClient) Ping() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.conn == nil {
+		return nil
+	}
+
+	log.Println("Sending Ping")
+	err := c.conn.WriteMessage(websocket.PingMessage, nil)
+	if err != nil {
+		log.Println("Ping error:", err)
+		return err
+	}
+	return nil
 }
 
 func (c *webSocketClient) Close() error {

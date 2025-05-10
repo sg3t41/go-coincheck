@@ -44,7 +44,7 @@ type Coincheck interface {
 	CancelStatus(context.Context, input.CancelStatus) (*output.CancelStatus, error)
 
 	// websockets
-	WebSocketTrade(context.Context) (any, error)
+	WebSocketTrade(context.Context, string, chan<- string) error
 }
 
 type coincheck struct {

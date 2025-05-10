@@ -10,7 +10,7 @@ import (
 )
 
 type WSTrades interface {
-	SubscribeTrades(ctx context.Context) error
+	Subscribe(context.Context, string) (<-chan string, error)
 }
 
 type trades struct {
@@ -23,35 +23,62 @@ func New(client client.Client) WSTrades {
 	}
 }
 
-func (t *trades) SubscribeTrades(ctx context.Context) error {
-	// サブスクライブするチャンネル
-	channel := "btc_jpy-trades"
+func (t *trades) Subscribe(ctx context.Context, channel string) (<-chan string, error) {
+	// メッセージを送信するチャネルを作成
+	tradeChan := make(chan string)
 
-	t.client.Connect(ctx)
-	t.client.Subscribe(channel)
+	// WebSocket接続を確立
+	err := t.client.Connect(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to WebSocket: %w", err)
+	}
 
-	// メッセージの読み取り開始
+	// 指定されたチャンネルを購読
+	if err := t.client.Subscribe(channel); err != nil {
+		return nil, fmt.Errorf("failed to subscribe to channel %s: %w", channel, err)
+	}
+
+	// メッセージの読み取りを開始
 	go func() {
+		defer func() {
+			if err := t.client.Close(); err != nil {
+				log.Println("error closing WebSocket connection:", err)
+			}
+			close(tradeChan) // チャネルを閉じる
+		}()
+
+		// メッセージを読み取り続ける
 		err := t.client.ReadMessages(ctx, func(message []byte) {
-			fmt.Println("Received:", string(message))
+			select {
+			case tradeChan <- string(message): // メッセージをチャネルに送信
+			case <-ctx.Done(): // コンテキストの終了を検知
+				return
+			}
 		})
 		if err != nil {
 			log.Println("read error:", err)
 		}
 	}()
 
-	// 適当に5秒待って終了（本番では select{} で待ち続けるなど）
-	select {
-	case <-ctx.Done():
-		fmt.Println("interrupted, shutting down...")
-	case <-time.After(10 * time.Second):
-		fmt.Println("timeout, shutting down...")
-	}
+	// Ping/Pongメカニズムの実装
+	go t.handlePingPong(ctx)
 
-	// 終了処理
-	if err := t.client.Close(); err != nil {
-		log.Println("close error:", err)
-	}
+	return tradeChan, nil
+}
 
-	return nil
+func (t *trades) handlePingPong(ctx context.Context) {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			if err := t.client.Ping(); err != nil {
+				log.Println("ping error:", err)
+				return
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
 }
