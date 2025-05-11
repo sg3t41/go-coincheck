@@ -38,18 +38,18 @@ func (c *coincheck) WebSocketTrade(ctx context.Context, channel string, tradeCha
 		go func() {
 			<-ctx.Done()
 			conn.Close()
-			close(tradeChan)
 		}()
 
 		// Subscribeメッセージの送信
 		subscribeToChannel(conn, channel)
+		subscribeToChannel(conn, "btc_jpy-orderbook")
 
 		// メッセージの受信ループ
 		err = readMessages(ctx, conn, tradeChan)
 		if err != nil {
 			log.Printf("Error reading message: %v", err)
 			conn.Close()
-			time.Sleep(5 * time.Second) // 再接続を試みる前に待機
+			time.Sleep(5 * time.Second)
 			continue
 		}
 	}
@@ -59,16 +59,20 @@ func readMessages(ctx context.Context, conn *websocket.Conn, tradeChan chan<- st
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			return err // エラーが発生したら呼び出し元に返す
+			return err
 		}
+
+		fmt.Printf("Received message: %s\n", string(message))
 
 		// メッセージをチャネルに送信
 		select {
 		case tradeChan <- string(message):
 		case <-ctx.Done():
+			log.Println("Context cancelled in readMessages")
 			return nil
 		}
 	}
+	return nil
 }
 
 func subscribeToChannel(conn *websocket.Conn, channel string) {

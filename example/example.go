@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/sg3t41/go-coincheck/external/coincheck"
 )
@@ -25,11 +26,13 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10000*time.Second)
+	defer cancel()
 
-	tradeChan := make(chan string)
+	tradeChan := make(chan string, 100)
 
-	if err := coincheck.WebSocketTrade(ctx, "doge_jpy-orderbook", tradeChan); err != nil {
+	err = coincheck.WebSocketTrade(ctx, "btc_jpy-trades", tradeChan)
+	if err != nil {
 		log.Fatalln(err)
 	}
 
@@ -40,4 +43,5 @@ func main() {
 		}
 	}()
 
+	time.Sleep(10000 * time.Second)
 }
