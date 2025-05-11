@@ -12,5 +12,6 @@
 !internal/
 !internal/**
 
-!example.go
+!example/
+!example/**
 

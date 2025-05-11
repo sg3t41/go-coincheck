@@ -24,7 +24,7 @@ type httpClient struct {
 	credentials *credentials
 }
 
-func NewHTTPClient(key, secret string) (HTTPClient, error) {
+func NewClient(key, secret string) (HTTPClient, error) {
 	baseURL, err := url.Parse("https://coincheck.com")
 	if err != nil {
 		return nil, e.WithPrefixError(err)

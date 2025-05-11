@@ -28,10 +28,22 @@ func main() {
 	ctx := context.Background()
 
 	accounts, err := coincheck.REST.Accounts(ctx)
-	fmt.Println(accounts)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Printf("%+v\n", accounts)
 
 	balance, err := coincheck.REST.Balance(ctx)
-	fmt.Println(balance)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Printf("%+v\n", balance)
+
+	trades, err := coincheck.REST.Trades(ctx, "btc_jpy")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Printf("%+v\n", trades)
 
 	//	go func() {
 	//		msgs, err := coincheck.WS.Trades(ctx, "btc_jpy")
