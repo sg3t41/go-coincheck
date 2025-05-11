@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/sg3t41/go-coincheck/internal/e"
+	"github.com/sg3t41/go-coincheck/external/e"
 )
 
 type HTTPClient interface {
