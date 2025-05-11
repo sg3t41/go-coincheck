@@ -22,7 +22,7 @@ import (
 type REST interface {
 	// rests
 	Ticker(ctx context.Context, pair string) (*ticker.GetResponse, error)
-	Accounts(context.Context) (*accounts.Response, error)
+	Accounts(context.Context) (*accounts.GetResponse, error)
 	Balance(context.Context) (*balance.GetReponse, error)
 	ExchangeStatus(ctx context.Context, pair string) (*exchangestatus.GetReponse, error)
 	ReferenceRate(ctx context.Context, pair string) (*referencerate.GetResponse, error)

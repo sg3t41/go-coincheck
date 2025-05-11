@@ -6,6 +6,6 @@ import (
 	"github.com/sg3t41/go-coincheck/internal/api/rest/exchange/orders"
 )
 
-func (c *rest) GetOrder(ctx context.Context, id int) (*orders.GetResponse, error) {
-	return c.orders.GET(ctx, id)
+func (rest *rest) GetOrder(ctx context.Context, id int) (*orders.GetResponse, error) {
+	return rest.orders.GET(ctx, id)
 }

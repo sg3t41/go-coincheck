@@ -4,6 +4,6 @@ import (
 	"context"
 )
 
-func (w *ws) Orderbook(ctx context.Context, pair string) (<-chan string, error) {
-	return w.orderbook.Subscribe(ctx, pair)
+func (ws *ws) Orderbook(ctx context.Context, pair string) (<-chan string, error) {
+	return ws.orderbook.Subscribe(ctx, pair)
 }

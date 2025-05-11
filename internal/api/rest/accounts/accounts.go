@@ -10,7 +10,7 @@ import (
 )
 
 type Accounts interface {
-	Get(context.Context) (*Response, error)
+	Get(context.Context) (*GetResponse, error)
 }
 
 type accounts struct {
@@ -24,7 +24,7 @@ func New(client client.Client) Accounts {
 }
 
 // Accounts はアカウント情報を持つ構造体
-type Response struct {
+type GetResponse struct {
 	Success        bool                       `json:"success"`
 	ID             int                        `json:"id"`
 	Email          string                     `json:"email"`
@@ -41,7 +41,7 @@ type ExchangeFeeRate struct {
 	TakerFeeRate string `json:"taker_fee_rate"`
 }
 
-func (accounts accounts) Get(context context.Context) (*Response, error) {
+func (accounts accounts) Get(context context.Context) (*GetResponse, error) {
 	req, err := accounts.client.CreateRequest(context, http_client.RequestInput{
 		Method:  http.MethodGet,
 		Path:    "/api/accounts",
@@ -51,7 +51,7 @@ func (accounts accounts) Get(context context.Context) (*Response, error) {
 		return nil, err
 	}
 
-	var res Response
+	var res GetResponse
 	if err := accounts.client.Do(req, &res); err != nil {
 		return nil, err
 	}
