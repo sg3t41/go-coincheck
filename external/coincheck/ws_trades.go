@@ -3,17 +3,11 @@ package coincheck
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
-
-// GetTrades は、指定されたペアの取引履歴を取得します
-// func (c *coincheck) WebSocketTrade(ctx context.Context) (any, error) {
-// 	return nil, c.ws_trades.SubscribeTrades(ctx)
-// }
 
 const (
 	wsURL = "wss://ws-api.coincheck.com/"
@@ -26,28 +20,33 @@ type SubscribeMessage struct {
 
 func (c *coincheck) WebSocketTrade(ctx context.Context, channel string, tradeChan chan<- string) error {
 	for {
+		log.Println("[INFO] Starting WebSocket connection to:", wsURL)
+
 		// WebSocket接続の作成
 		conn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 		if err != nil {
-			log.Printf("Failed to connect to WebSocket server: %v", err)
+			log.Printf("[ERROR] Failed to connect to WebSocket server: %v", err)
 			time.Sleep(5 * time.Second) // 再接続を試みる前に待機
 			continue
 		}
 
+		log.Println("[INFO] WebSocket connection established")
+
 		// 切断時に接続を閉じる
 		go func() {
 			<-ctx.Done()
+			log.Println("[INFO] Context cancelled, closing WebSocket connection")
 			conn.Close()
 		}()
 
 		// Subscribeメッセージの送信
 		subscribeToChannel(conn, channel)
-		subscribeToChannel(conn, "btc_jpy-orderbook")
+		//		subscribeToChannel(conn, "btc_jpy-orderbook")
 
 		// メッセージの受信ループ
 		err = readMessages(ctx, conn, tradeChan)
 		if err != nil {
-			log.Printf("Error reading message: %v", err)
+			log.Printf("[ERROR] Error reading message: %v", err)
 			conn.Close()
 			time.Sleep(5 * time.Second)
 			continue
@@ -56,23 +55,27 @@ func (c *coincheck) WebSocketTrade(ctx context.Context, channel string, tradeCha
 }
 
 func readMessages(ctx context.Context, conn *websocket.Conn, tradeChan chan<- string) error {
+	log.Println("[INFO] Starting to read messages")
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
+			log.Printf("[ERROR] Failed to read message: %v", err)
 			return err
 		}
 
-		fmt.Printf("Received message: %s\n", string(message))
+		//		log.Printf("[DEBUG] Received message: %s", string(message))
 
 		// メッセージをチャネルに送信
 		select {
 		case tradeChan <- string(message):
+			//			log.Println("[INFO] Message sent to tradeChan")
 		case <-ctx.Done():
-			log.Println("Context cancelled in readMessages")
+			log.Println("[INFO] Context cancelled in readMessages, exiting")
 			return nil
+		default:
+			log.Println("[WARN] tradeChan is full, skipping message")
 		}
 	}
-	return nil
 }
 
 func subscribeToChannel(conn *websocket.Conn, channel string) {
@@ -84,13 +87,13 @@ func subscribeToChannel(conn *websocket.Conn, channel string) {
 
 	message, err := json.Marshal(subscribeMessage)
 	if err != nil {
-		log.Fatalf("Failed to encode subscribe message: %v", err)
+		log.Fatalf("[FATAL] Failed to encode subscribe message: %v", err)
 	}
 
 	// Subscribeメッセージを送信
 	err = conn.WriteMessage(websocket.TextMessage, message)
 	if err != nil {
-		log.Fatalf("Failed to send subscribe message: %v", err)
+		log.Fatalf("[FATAL] Failed to send subscribe message: %v", err)
 	}
-	fmt.Printf("Subscribed to channel: %s\n", channel)
+	log.Printf("[INFO] Subscribed to channel: %s", channel)
 }
