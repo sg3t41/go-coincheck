@@ -13,14 +13,6 @@ import (
 	"github.com/sg3t41/go-coincheck/internal/e"
 )
 
-type RequestInput struct {
-	Method     string            // HTTPメソッド (例: GET, POST)
-	Path       string            // APIパス (例: /api/orders)
-	Body       io.Reader         // リクエストボディ。不要な場合はnilを設定します。
-	QueryParam map[string]string // クエリパラメータ (例: {"pair": "btc_jpy"}) 不要な場合はnilを設定します。
-	Private    bool              // trueの場合、プライベートAPIです。
-}
-
 type HTTPClient interface {
 	CreateRequest(ctx context.Context, input RequestInput) (*http.Request, error)
 	Do(req *http.Request, output any) error
@@ -43,6 +35,14 @@ func NewHTTPClient(key, secret string) (HTTPClient, error) {
 		credentials: &credentials{key, secret},
 		baseURL:     baseURL,
 	}, nil
+}
+
+type RequestInput struct {
+	Method     string            // HTTPメソッド (例: GET, POST)
+	Path       string            // APIパス (例: /api/orders)
+	Body       io.Reader         // リクエストボディ。不要な場合はnilを設定します。
+	QueryParam map[string]string // クエリパラメータ (例: {"pair": "btc_jpy"}) 不要な場合はnilを設定します。
+	Private    bool              // trueの場合、プライベートAPIです。
 }
 
 func (c *httpClient) CreateRequest(ctx context.Context, input RequestInput) (*http.Request, error) {

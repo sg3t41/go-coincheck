@@ -3,10 +3,9 @@ package rest
 import (
 	"context"
 
-	"github.com/sg3t41/go-coincheck/external/dto/input"
-	"github.com/sg3t41/go-coincheck/external/dto/output"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/exchange/orders/cancelstatus"
 )
 
-func (c *rest) CancelStatus(ctx context.Context, in input.CancelStatus) (*output.CancelStatus, error) {
-	return c.cancel_status.GET(ctx, in)
+func (c *rest) CancelStatus(ctx context.Context, id int) (*cancelstatus.GetResponse, error) {
+	return c.cancel_status.GET(ctx, id)
 }

@@ -28,17 +28,28 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	tradeChan := make(chan string, 100)
+	_, _ = coincheck.REST.Accounts(ctx)
+	_, _ = coincheck.REST.Balance(ctx)
+	_, _ = coincheck.REST.Trades(ctx, "doge_jpy")
 
 	go func() {
-		err := coincheck.WS.Trades(ctx, "btc_jpy-trades", tradeChan)
+		msgs, err := coincheck.WS.Trades(ctx, "btc_jpy")
 		if err != nil {
 			log.Fatalln("[ERROR] WebSocketTrade failed:", err)
+		}
+
+		for msg := range msgs {
+			fmt.Printf("[MESSAGE] %s\n", msg)
 		}
 	}()
 
 	go func() {
-		for msg := range tradeChan {
+		msgs, err := coincheck.WS.Orderbook(ctx, "doge_jpy")
+		if err != nil {
+			log.Fatalln("[ERROR] WebSocketOrderbook failed:", err)
+		}
+
+		for msg := range msgs {
 			fmt.Printf("[MESSAGE] %s\n", msg)
 		}
 	}()

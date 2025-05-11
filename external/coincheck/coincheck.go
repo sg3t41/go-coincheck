@@ -16,7 +16,7 @@ func New(key, secret string) (*Coincheck, error) {
 		return nil, err
 	}
 
-	ws, err := ws.New() // TODO 認証情報optional化
+	ws, err := ws.New()
 	if err != nil {
 		return nil, err
 	}

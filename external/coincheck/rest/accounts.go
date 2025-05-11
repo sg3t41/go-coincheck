@@ -3,9 +3,9 @@ package rest
 import (
 	"context"
 
-	"github.com/sg3t41/go-coincheck/external/dto/output"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/accounts"
 )
 
-func (coincheck *rest) Accounts(ctx context.Context) (*output.Accounts, error) {
+func (coincheck *rest) Accounts(ctx context.Context) (*accounts.Response, error) {
 	return coincheck.accounts.Get(ctx)
 }

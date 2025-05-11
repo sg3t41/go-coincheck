@@ -12,9 +12,7 @@ import (
 
 type WebSocketClient interface {
 	Connect(ctx context.Context) error
-	Subscribe(channel string) error
-	ReadMessages(context.Context, func([]byte)) error
-	Ping() error // Pingメソッドを追加
+	Subscribe(ctx context.Context, channel string, in chan<- string) error
 	Close() error
 }
 
@@ -24,7 +22,6 @@ type webSocketClient struct {
 	mu          sync.Mutex
 	subscribed  map[string]bool
 	readTimeout time.Duration
-	pingPeriod  time.Duration
 }
 
 func NewWebSocketClient() (WebSocketClient, error) {
@@ -32,91 +29,110 @@ func NewWebSocketClient() (WebSocketClient, error) {
 		url:         "wss://ws-api.coincheck.com/",
 		subscribed:  make(map[string]bool),
 		readTimeout: 10 * time.Second,
-		pingPeriod:  5 * time.Second, // Pingを送信する間隔
 	}, nil
 }
 
+// WebSocket接続を確立する関数
 func (c *webSocketClient) Connect(ctx context.Context) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// Create a WebSocket connection
-	conn, _, err := websocket.DefaultDialer.DialContext(ctx, c.url, nil)
+	log.Println("[INFO] Starting WebSocket connection to:", c.url)
+	conn, _, err := websocket.DefaultDialer.Dial(c.url, nil)
 	if err != nil {
 		return err
 	}
 	c.conn = conn
-	log.Println("WebSocket connected to", c.url)
 
-	// Set Pong handler
-	c.conn.SetReadDeadline(time.Now().Add(c.readTimeout))
-	c.conn.SetPongHandler(func(appData string) error {
-		log.Println("Pong received")
-		c.conn.SetReadDeadline(time.Now().Add(c.readTimeout))
-		return nil
-	})
+	log.Println("[INFO] WebSocket connection established")
+
+	// Contextキャンセル時に接続を閉じる
+	go func() {
+		<-ctx.Done()
+		log.Println("[INFO] Context cancelled, closing WebSocket connection")
+		c.conn.Close()
+	}()
 
 	return nil
 }
 
-func (c *webSocketClient) Subscribe(channel string) error {
+func (c *webSocketClient) Subscribe(ctx context.Context, channel string, in chan<- string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if c.subscribed[channel] {
-		return nil // Already subscribed
+	go func() {
+		defer close(in)
+		for {
+
+			// Subscribeメッセージの送信
+			if err := c.subscribe(ctx, channel); err != nil {
+				log.Printf("[ERROR] Error subscribe message: %v\n", err)
+				c.conn.Close()
+				break
+			}
+
+			// メッセージの受信ループ
+			if err := c.ReadMessages(ctx, in); err != nil {
+				log.Printf("[ERROR] Error reading message: %v\n", err)
+				c.conn.Close()
+				time.Sleep(5 * time.Second)
+				continue
+			}
+		}
+	}()
+
+	return nil
+}
+
+type SubscribeMessage struct {
+	Type    string `json:"type"`
+	Channel string `json:"channel"`
+}
+
+func (c *webSocketClient) subscribe(_ context.Context, channel string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	// Subscribeメッセージを構築
+	subscribeMessage := SubscribeMessage{
+		Type:    "subscribe",
+		Channel: channel,
 	}
 
-	subscribeMessage := map[string]string{
-		"type":    "subscribe",
-		"channel": channel,
-	}
 	message, err := json.Marshal(subscribeMessage)
 	if err != nil {
-		return err
+		log.Fatalf("[FATAL] Failed to encode subscribe message: %v", err)
 	}
 
+	// Subscribeメッセージを送信
 	err = c.conn.WriteMessage(websocket.TextMessage, message)
 	if err != nil {
-		return err
+		log.Fatalf("[FATAL] Failed to send subscribe message: %v", err)
 	}
-	c.subscribed[channel] = true
-	log.Println("Subscribed to channel:", channel)
+	log.Printf("[INFO] Subscribed to channel: %s", channel)
+
 	return nil
 }
 
-func (c *webSocketClient) ReadMessages(ctx context.Context, handler func([]byte)) error {
+func (c *webSocketClient) ReadMessages(ctx context.Context, in chan<- string) error {
 	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-		}
-
-		c.conn.SetReadDeadline(time.Now().Add(c.readTimeout))
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
+			log.Printf("[ERROR] Failed to read message: %v", err)
 			return err
 		}
-		go handler(message)
-	}
-}
 
-func (c *webSocketClient) Ping() error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if c.conn == nil {
-		return nil
+		// メッセージをチャネルに送信
+		select {
+		case in <- string(message):
+			// メッセージを送信
+		case <-ctx.Done():
+			log.Println("[INFO] Context cancelled in readMessages, exiting")
+			return nil
+		default:
+			log.Println("[WARN] tradeChan is full, skipping message")
+		}
 	}
-
-	log.Println("Sending Ping")
-	err := c.conn.WriteMessage(websocket.PingMessage, nil)
-	if err != nil {
-		log.Println("Ping error:", err)
-		return err
-	}
-	return nil
 }
 
 func (c *webSocketClient) Close() error {

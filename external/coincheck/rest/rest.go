@@ -3,47 +3,45 @@ package rest
 import (
 	"context"
 
-	"github.com/sg3t41/go-coincheck/external/dto/input"
-	"github.com/sg3t41/go-coincheck/external/dto/output"
-	"github.com/sg3t41/go-coincheck/internal/api/http/accounts"
-	"github.com/sg3t41/go-coincheck/internal/api/http/accounts/balance"
-	"github.com/sg3t41/go-coincheck/internal/api/http/exchange/orders"
-	"github.com/sg3t41/go-coincheck/internal/api/http/exchange/orders/cancelstatus"
-	"github.com/sg3t41/go-coincheck/internal/api/http/exchange/orders/opens"
-	"github.com/sg3t41/go-coincheck/internal/api/http/exchange/orders/ordersrate"
-	"github.com/sg3t41/go-coincheck/internal/api/http/exchange/orders/transactions"
-	"github.com/sg3t41/go-coincheck/internal/api/http/exchange/orders/transactionspagination"
-	"github.com/sg3t41/go-coincheck/internal/api/http/exchangestatus"
-	"github.com/sg3t41/go-coincheck/internal/api/http/orderbooks"
-	"github.com/sg3t41/go-coincheck/internal/api/http/referencerate"
-	"github.com/sg3t41/go-coincheck/internal/api/http/ticker"
-	"github.com/sg3t41/go-coincheck/internal/api/http/trades"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/accounts"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/accounts/balance"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/exchange/orders"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/exchange/orders/cancelstatus"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/exchange/orders/opens"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/exchange/orders/ordersrate"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/exchange/orders/transactions"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/exchange/orders/transactionspagination"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/exchangestatus"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/orderbooks"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/referencerate"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/ticker"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/trades"
 	"github.com/sg3t41/go-coincheck/internal/client"
 )
 
 type REST interface {
 	// rests
-	Ticker(context.Context, input.GetTicker) (*output.GetTicker, error)
-	Accounts(context.Context) (*output.Accounts, error)
-	Balance(context.Context) (*output.Balance, error)
-	ExchangeStatus(context.Context, input.ExchangeStatus) (*output.ExchangeStatus, error)
-	ReferenceRate(context.Context, input.ReferenceRate) (*output.ReferenceRate, error)
-	OrdersRate(context.Context, input.OrdersRate) (*output.OrdersRate, error)
+	Ticker(ctx context.Context, pair string) (*ticker.GetResponse, error)
+	Accounts(context.Context) (*accounts.Response, error)
+	Balance(context.Context) (*balance.GetReponse, error)
+	ExchangeStatus(ctx context.Context, pair string) (*exchangestatus.GetReponse, error)
+	ReferenceRate(ctx context.Context, pair string) (*referencerate.GetResponse, error)
+	OrdersRate(ctx context.Context, pair, orderType string, price, amount float64) (*ordersrate.GetResponse, error)
 
-	Trades(context.Context, input.GetTrades) (*output.GetTrades, error)
-	OrderBooks(context.Context, input.GetOrderBooks) (*output.GetOrderBooks, error)
-	GetOrder(context.Context, input.GetOrder) (*output.GetOrder, error)
-	Transactions(context.Context) (*output.GetTransactions, error)
-	TransactionsPagination(context.Context, input.TransactionsPagination) (*output.TransactionsPagination, error)
-	OpenOrders(context.Context) (*output.Opens, error)
+	Trades(ctx context.Context, pair string) (*trades.GetResponse, error)
+	OrderBooks(ctx context.Context, pair string) (*orderbooks.GetResponse, error)
+	Transactions(context.Context) (*transactions.GetReponse, error)
+	TransactionsPagination(ctx context.Context, limit int, order string, startingAfter, endingBefore *int) (*transactionspagination.GetResponse, error)
+	OpenOrders(context.Context) (*opens.GetResponse, error)
 
-	CreateOrder(context.Context, input.CreateOrder) (*output.CreateOrder, error)
-	CancelOrder(context.Context, input.CancelOrder) (*output.CancelOrder, error)
-	CancelStatus(context.Context, input.CancelStatus) (*output.CancelStatus, error)
+	GetOrder(ctx context.Context, id int) (*orders.GetResponse, error)
+	CreateOrder(ctx context.Context, pair, orderType string, rate, amount float64) (*orders.PostResponse, error)
+	CancelOrder(ctx context.Context, id int) (*orders.DeleteResponse, error)
+
+	CancelStatus(ctx context.Context, id int) (*cancelstatus.GetResponse, error)
 }
 
 type rest struct {
-	// rests
 	accounts                accounts.Accounts
 	cancel_status           cancelstatus.CancelStatus
 	orders                  orders.Orders
@@ -66,7 +64,6 @@ func New(key, secret string) (REST, error) {
 	}
 
 	return &rest{
-		//rests
 		accounts:                accounts.New(c),
 		balance:                 balance.New(c),
 		cancel_status:           cancelstatus.New(c),

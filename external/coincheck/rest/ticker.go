@@ -3,10 +3,9 @@ package rest
 import (
 	"context"
 
-	"github.com/sg3t41/go-coincheck/external/dto/input"
-	"github.com/sg3t41/go-coincheck/external/dto/output"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/ticker"
 )
 
-func (c *rest) Ticker(ctx context.Context, in input.GetTicker) (*output.GetTicker, error) {
-	return c.ticker.GET(ctx, in)
+func (c *rest) Ticker(ctx context.Context, pair string) (*ticker.GetResponse, error) {
+	return c.ticker.GET(ctx, pair)
 }

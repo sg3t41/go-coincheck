@@ -3,10 +3,9 @@ package rest
 import (
 	"context"
 
-	"github.com/sg3t41/go-coincheck/external/dto/input"
-	"github.com/sg3t41/go-coincheck/external/dto/output"
+	"github.com/sg3t41/go-coincheck/internal/api/rest/exchangestatus"
 )
 
-func (c *rest) ExchangeStatus(ctx context.Context, i input.ExchangeStatus) (*output.ExchangeStatus, error) {
-	return c.exchange_status.GET(ctx, i)
+func (c *rest) ExchangeStatus(ctx context.Context, pair string) (*exchangestatus.GetReponse, error) {
+	return c.exchange_status.GET(ctx, pair)
 }

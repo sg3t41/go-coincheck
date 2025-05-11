@@ -4,6 +4,6 @@ import (
 	"context"
 )
 
-func (w *ws) Trades(ctx context.Context, channel string, tradeChan chan<- string) error {
-	return w.trades.Subscribe(ctx, channel, tradeChan)
+func (w *ws) Trades(ctx context.Context, pair string) (<-chan string, error) {
+	return w.trades.Subscribe(ctx, pair)
 }
