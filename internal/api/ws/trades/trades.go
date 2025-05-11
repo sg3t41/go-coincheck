@@ -2,83 +2,109 @@ package trades
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"log"
 	"time"
 
-	"github.com/sg3t41/go-coincheck/internal/client"
+	"github.com/gorilla/websocket"
 )
 
-type WSTrades interface {
-	Subscribe(context.Context, string) (<-chan string, error)
+type Trades interface {
+	Subscribe(ctx context.Context, channel string, tradeChan chan<- string) error
 }
 
 type trades struct {
-	client client.Client
 }
 
-func New(client client.Client) WSTrades {
-	return &trades{
-		client: client,
-	}
+func New() Trades {
+	return &trades{}
 }
 
-func (t *trades) Subscribe(ctx context.Context, channel string) (<-chan string, error) {
-	// メッセージを送信するチャネルを作成
-	tradeChan := make(chan string)
+const (
+	wsURL = "wss://ws-api.coincheck.com/"
+)
 
-	// WebSocket接続を確立
-	err := t.client.Connect(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to WebSocket: %w", err)
-	}
+type SubscribeMessage struct {
+	Type    string `json:"type"`
+	Channel string `json:"channel"`
+}
 
-	// 指定されたチャンネルを購読
-	if err := t.client.Subscribe(channel); err != nil {
-		return nil, fmt.Errorf("failed to subscribe to channel %s: %w", channel, err)
-	}
+func (*trades) Subscribe(ctx context.Context, channel string, tradeChan chan<- string) error {
+	for {
+		log.Println("[INFO] Starting WebSocket connection to:", wsURL)
 
-	// メッセージの読み取りを開始
-	go func() {
-		defer func() {
-			if err := t.client.Close(); err != nil {
-				log.Println("error closing WebSocket connection:", err)
-			}
-			close(tradeChan) // チャネルを閉じる
+		// WebSocket接続の作成
+		conn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
+		if err != nil {
+			log.Printf("[ERROR] Failed to connect to WebSocket server: %v", err)
+			time.Sleep(5 * time.Second) // 再接続を試みる前に待機
+			continue
+		}
+
+		log.Println("[INFO] WebSocket connection established")
+
+		// 切断時に接続を閉じる
+		go func() {
+			<-ctx.Done()
+			log.Println("[INFO] Context cancelled, closing WebSocket connection")
+			conn.Close()
 		}()
 
-		// メッセージを読み取り続ける
-		err := t.client.ReadMessages(ctx, func(message []byte) {
-			select {
-			case tradeChan <- string(message): // メッセージをチャネルに送信
-			case <-ctx.Done(): // コンテキストの終了を検知
-				return
-			}
-		})
+		// Subscribeメッセージの送信
+		subscribeToChannel(conn, channel)
+		//		subscribeToChannel(conn, "btc_jpy-orderbook")
+
+		// メッセージの受信ループ
+		err = readMessages(ctx, conn, tradeChan)
 		if err != nil {
-			log.Println("read error:", err)
-		}
-	}()
-
-	// Ping/Pongメカニズムの実装
-	go t.handlePingPong(ctx)
-
-	return tradeChan, nil
-}
-
-func (t *trades) handlePingPong(ctx context.Context) {
-	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			if err := t.client.Ping(); err != nil {
-				log.Println("ping error:", err)
-				return
-			}
-		case <-ctx.Done():
-			return
+			log.Printf("[ERROR] Error reading message: %v", err)
+			conn.Close()
+			time.Sleep(5 * time.Second)
+			continue
 		}
 	}
+}
+
+func readMessages(ctx context.Context, conn *websocket.Conn, tradeChan chan<- string) error {
+	log.Println("[INFO] Starting to read messages")
+	for {
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Printf("[ERROR] Failed to read message: %v", err)
+			return err
+		}
+
+		//		log.Printf("[DEBUG] Received message: %s", string(message))
+
+		// メッセージをチャネルに送信
+		select {
+		case tradeChan <- string(message):
+			//			log.Println("[INFO] Message sent to tradeChan")
+		case <-ctx.Done():
+			log.Println("[INFO] Context cancelled in readMessages, exiting")
+			return nil
+		default:
+			log.Println("[WARN] tradeChan is full, skipping message")
+		}
+	}
+}
+
+func subscribeToChannel(conn *websocket.Conn, channel string) {
+	// Subscribeメッセージを構築
+	subscribeMessage := SubscribeMessage{
+		Type:    "subscribe",
+		Channel: channel,
+	}
+
+	message, err := json.Marshal(subscribeMessage)
+	if err != nil {
+		log.Fatalf("[FATAL] Failed to encode subscribe message: %v", err)
+	}
+
+	// Subscribeメッセージを送信
+	err = conn.WriteMessage(websocket.TextMessage, message)
+	if err != nil {
+		log.Fatalf("[FATAL] Failed to send subscribe message: %v", err)
+	}
+	log.Printf("[INFO] Subscribed to channel: %s", channel)
 }

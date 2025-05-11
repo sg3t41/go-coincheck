@@ -1,4 +1,4 @@
-package coincheck
+package rest
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 )
 
-func (c *coincheck) TransactionsPagination(
+func (c *rest) TransactionsPagination(
 	ctx context.Context,
 	in input.TransactionsPagination,
 ) (*output.TransactionsPagination, error) {

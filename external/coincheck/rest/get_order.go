@@ -1,4 +1,4 @@
-package coincheck
+package rest
 
 import (
 	"context"
@@ -7,6 +7,6 @@ import (
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 )
 
-func (c *coincheck) GetOrder(ctx context.Context, in input.GetOrder) (*output.GetOrder, error) {
+func (c *rest) GetOrder(ctx context.Context, in input.GetOrder) (*output.GetOrder, error) {
 	return c.orders.GET(ctx, in)
 }

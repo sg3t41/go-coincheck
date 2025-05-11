@@ -1,4 +1,4 @@
-package coincheck
+package rest
 
 import (
 	"context"
@@ -7,6 +7,6 @@ import (
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 )
 
-func (c *coincheck) ReferenceRate(ctx context.Context, in input.ReferenceRate) (*output.ReferenceRate, error) {
+func (c *rest) ReferenceRate(ctx context.Context, in input.ReferenceRate) (*output.ReferenceRate, error) {
 	return c.reference_rate.GET(ctx, in)
 }

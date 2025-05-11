@@ -1,4 +1,4 @@
-package coincheck
+package rest
 
 import (
 	"context"
@@ -6,6 +6,6 @@ import (
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 )
 
-func (c *coincheck) Transactions(ctx context.Context) (*output.GetTransactions, error) {
+func (c *rest) Transactions(ctx context.Context) (*output.GetTransactions, error) {
 	return c.transactions.GET(ctx)
 }

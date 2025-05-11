@@ -1,4 +1,4 @@
-package coincheck
+package rest
 
 import (
 	"context"
@@ -6,6 +6,6 @@ import (
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 )
 
-func (c *coincheck) OpenOrders(ctx context.Context) (*output.Opens, error) {
+func (c *rest) OpenOrders(ctx context.Context) (*output.Opens, error) {
 	return c.opens.GET(ctx)
 }

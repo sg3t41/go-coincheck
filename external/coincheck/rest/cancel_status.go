@@ -1,4 +1,4 @@
-package coincheck
+package rest
 
 import (
 	"context"
@@ -7,6 +7,6 @@ import (
 	"github.com/sg3t41/go-coincheck/external/dto/output"
 )
 
-func (c *coincheck) CancelStatus(ctx context.Context, in input.CancelStatus) (*output.CancelStatus, error) {
+func (c *rest) CancelStatus(ctx context.Context, in input.CancelStatus) (*output.CancelStatus, error) {
 	return c.cancel_status.GET(ctx, in)
 }
