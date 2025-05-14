@@ -11,11 +11,11 @@ import (
 var c client.Client
 
 func init() {
-	c, err := client.New("", "")
+	cc, err := client.New("", "")
 	if err != nil {
 		log.Fatalln(err)
 	}
-	c = c
+	c = cc
 }
 
 func TestAccounts(t *testing.T) {
