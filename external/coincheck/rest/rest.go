@@ -58,7 +58,9 @@ type rest struct {
 }
 
 func New(key, secret string) (REST, error) {
-	c, err := client.New(key, secret)
+	c, err := client.New(
+		client.UseREST(key, secret), // RESTクライアントのみを初期化
+	)
 	if err != nil {
 		return nil, err
 	}

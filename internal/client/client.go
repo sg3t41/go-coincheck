@@ -16,19 +16,36 @@ type Client interface {
 	websocket.WebSocketClient
 }
 
-func New(key, secret string) (Client, error) {
-	httpClient, err := http.NewClient(key, secret)
-	if err != nil {
-		return nil, e.WithPrefixError(err)
-	}
+type Option func(*client) error
 
-	websocketClient, err := websocket.NewClient()
-	if err != nil {
-		return nil, e.WithPrefixError(err)
+func UseREST(key, secret string) Option {
+	return func(c *client) error {
+		httpClient, err := http.NewClient(key, secret)
+		if err != nil {
+			return e.WithPrefixError(err)
+		}
+		c.HTTPClient = httpClient
+		return nil
 	}
+}
 
-	return &client{
-		httpClient,
-		websocketClient,
-	}, nil
+func UseWebSocket() Option {
+	return func(c *client) error {
+		websocketClient, err := websocket.NewClient()
+		if err != nil {
+			return e.WithPrefixError(err)
+		}
+		c.WebSocketClient = websocketClient
+		return nil
+	}
+}
+
+func New(opts ...Option) (Client, error) {
+	c := &client{}
+	for _, opt := range opts {
+		if err := opt(c); err != nil {
+			return nil, err
+		}
+	}
+	return c, nil
 }

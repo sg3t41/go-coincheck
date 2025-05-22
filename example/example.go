@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
@@ -20,42 +19,24 @@ func init() {
 }
 
 func main() {
-	coincheck, err := coincheck.New(key, secret)
+	client, err := coincheck.New(
+		// 認証情報を使用
+		coincheck.UseCredentials(key, secret),
+		// HTTP REST APIを使用
+		coincheck.UseHTTP(),
+		// WebSocket APIを使用
+		coincheck.UseWebSocket(),
+	)
 	if err != nil {
-		log.Fatalln("[ERROR] Failed to initialize Coincheck client:", err)
+		log.Fatalf("[ERROR] %v", err)
 	}
 
 	ctx := context.Background()
-
-	accounts, err := coincheck.REST.Accounts(ctx)
+	ticker, err := client.REST.Ticker(ctx, "btc_jpy")
 	if err != nil {
-		log.Fatalln(err)
+		log.Printf("[ERROR] %v", err)
+		return
 	}
-	fmt.Printf("%+v\n", accounts)
 
-	balance, err := coincheck.REST.Balance(ctx)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Printf("%+v\n", balance)
-
-	trades, err := coincheck.REST.Trades(ctx, "btc_jpy")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Printf("%+v\n", trades)
-
-	//	go func() {
-	//		msgs, err := coincheck.WS.Trades(ctx, "btc_jpy")
-	//		if err != nil {
-	//			log.Fatalln("[ERROR] WebSocketTrade failed:", err)
-	//		}
-	//
-	//		for msg := range msgs {
-	//			fmt.Printf("[MESSAGE] %s\n", msg)
-	//		}
-	//	}()
-
-	log.Println("[INFO] Press Ctrl+C to exit...")
-	select {}
+	log.Printf("%+v\n", ticker)
 }

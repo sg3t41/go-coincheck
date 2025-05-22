@@ -19,7 +19,9 @@ type ws struct {
 }
 
 func New() (WS, error) {
-	c, err := client.New("", "")
+	c, err := client.New(
+		client.UseWebSocket(), // WebSocketクライアントのみを初期化
+	)
 	if err != nil {
 		return nil, err
 	}
