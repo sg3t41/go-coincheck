@@ -20,7 +20,7 @@ type ws struct {
 
 func New() (WS, error) {
 	c, err := client.New(
-		client.UseWebSocket(), // WebSocketクライアントのみを初期化
+		client.WithWebSocket("wss://ws-api.coincheck.com/"), // WebSocketクライアントのみを初期化
 	)
 	if err != nil {
 		return nil, err

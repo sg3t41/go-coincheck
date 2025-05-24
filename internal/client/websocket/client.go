@@ -2,12 +2,15 @@ package websocket
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/sg3t41/go-coincheck/external/e"
 )
 
 type WebSocketClient interface {
@@ -17,16 +20,46 @@ type WebSocketClient interface {
 }
 
 type webSocketClient struct {
-	url       string
+	url       *url.URL
 	conn      *websocket.Conn
 	mu        sync.Mutex
 	connected bool
 }
 
-func NewClient() (WebSocketClient, error) {
-	return &webSocketClient{
-		url: "wss://ws-api.coincheck.com/",
-	}, nil
+type Option func(*webSocketClient) error
+
+func WithBaseURL(strURL string) Option {
+	return func(wsc *webSocketClient) error {
+		if strURL == "" {
+			return e.WithPrefixError(errors.New("WebSocketのベースURLが空です"))
+		}
+		url, err := url.Parse(strURL)
+		if err != nil {
+			return e.WithPrefixError(err)
+		}
+
+		wsc.url = url
+		return nil
+	}
+}
+
+func NewClient(opts ...Option) (WebSocketClient, error) {
+	defaultURL, err := url.Parse("wss://ws-api.coincheck.com/")
+	if err != nil {
+		return nil, e.WithPrefixError(err)
+	}
+
+	c := &webSocketClient{
+		url: defaultURL,
+	}
+
+	for _, o := range opts {
+		if err := o(c); err != nil {
+			return nil, e.WithPrefixError(err)
+		}
+	}
+
+	return c, nil
 }
 
 // WebSocket接続を確立する関数（シングルトン的な実装）
@@ -41,7 +74,7 @@ func (c *webSocketClient) Connect(ctx context.Context) error {
 	}
 
 	log.Println("[INFO] Starting WebSocket connection to:", c.url)
-	conn, _, err := websocket.DefaultDialer.Dial(c.url, nil)
+	conn, _, err := websocket.DefaultDialer.Dial(c.url.String(), nil)
 	if err != nil {
 		return fmt.Errorf("failed to connect to WebSocket: %w", err)
 	}

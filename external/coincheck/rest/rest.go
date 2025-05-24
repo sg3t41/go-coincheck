@@ -59,7 +59,7 @@ type rest struct {
 
 func New(key, secret string) (REST, error) {
 	c, err := client.New(
-		client.UseREST(key, secret), // RESTクライアントのみを初期化
+		client.WithREST(key, secret, "https://coincheck.com"), // RESTクライアントのみを初期化
 	)
 	if err != nil {
 		return nil, err

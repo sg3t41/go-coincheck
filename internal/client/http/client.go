@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,20 +22,63 @@ type HTTPClient interface {
 type httpClient struct {
 	httpClient  *http.Client
 	baseURL     *url.URL
-	credentials *credentials
+	credentials *Credentials
 }
 
-func NewClient(key, secret string) (HTTPClient, error) {
-	baseURL, err := url.Parse("https://coincheck.com")
+type Option func(*httpClient) error
+
+func WithCredentials(key, secret string) Option {
+	return func(hc *httpClient) error {
+		// TODO fix
+		switch true {
+		case key == "" && secret == "":
+			return e.WithPrefixError(errors.New("認証情報のkeyとsecretが空です"))
+		case key == "":
+			return e.WithPrefixError(errors.New("認証情報のkeyが空です"))
+		case secret == "":
+			return e.WithPrefixError(errors.New("認証情報のsecretが空です"))
+		default:
+			crd := &Credentials{key, secret}
+			hc.credentials = crd
+			return nil
+		}
+	}
+}
+
+func WithBaseURL(strURL string) Option {
+	return func(hc *httpClient) error {
+		if strURL == "" {
+			return e.WithPrefixError(errors.New("REST APIのベースURLが空です")) // TODO fix
+		}
+
+		baseURL, err := url.Parse(strURL)
+		if err != nil {
+			return e.WithPrefixError(err)
+		}
+
+		hc.baseURL = baseURL
+		return nil
+	}
+}
+
+func NewClient(opts ...Option) (HTTPClient, error) {
+	defaultBaseURL, err := url.Parse("https://coincheck.com")
 	if err != nil {
 		return nil, e.WithPrefixError(err)
 	}
 
-	return &httpClient{
-		httpClient:  http.DefaultClient,
-		credentials: &credentials{key, secret},
-		baseURL:     baseURL,
-	}, nil
+	c := &httpClient{
+		httpClient: http.DefaultClient,
+		baseURL:    defaultBaseURL,
+	}
+
+	for _, o := range opts {
+		if err := o(c); err != nil {
+			return nil, e.WithPrefixError(err)
+		}
+	}
+
+	return c, nil
 }
 
 type RequestInput struct {

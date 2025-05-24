@@ -17,13 +17,13 @@ type RequestHeaderParam struct {
 }
 
 // Credentials はAPIキーとシークレットを保持する構造体です。
-type credentials struct {
+type Credentials struct {
 	key    string
 	secret string
 }
 
 // GenerateRequestHeaders はリクエストに必要なヘッダーを生成します。
-func (c *credentials) GenerateRequestHeaders(requestURL *url.URL, body string) (*RequestHeaderParam, error) {
+func (c *Credentials) GenerateRequestHeaders(requestURL *url.URL, body string) (*RequestHeaderParam, error) {
 	nonce := time.Now().UnixNano() / int64(time.Millisecond) // nonceをミリ秒単位で生成
 	message := fmt.Sprintf("%d%s%s", nonce, requestURL.String(), body)
 

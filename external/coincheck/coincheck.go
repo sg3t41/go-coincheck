@@ -7,7 +7,7 @@ import (
 
 type Option func(*Coincheck) error
 
-func UseCredentials(key, secret string) Option {
+func WithCredentials(key, secret string) Option {
 	return func(c *Coincheck) error {
 		cred := Credentials{key, secret}
 		c.credentials = cred
@@ -15,7 +15,7 @@ func UseCredentials(key, secret string) Option {
 	}
 }
 
-func UseHTTP() Option {
+func WithHTTP() Option {
 	return func(c *Coincheck) error {
 		client, err := rest.New(c.credentials.key, c.credentials.secret)
 		if err != nil {
@@ -26,7 +26,7 @@ func UseHTTP() Option {
 	}
 }
 
-func UseWebSocket() Option {
+func WithWebSocket() Option {
 	return func(c *Coincheck) error {
 		client, err := ws.New()
 		if err != nil {
@@ -40,9 +40,8 @@ func UseWebSocket() Option {
 type Credentials struct{ key, secret string }
 
 type Coincheck struct {
-	REST rest.REST
-	WS   ws.WS
-
+	REST        rest.REST
+	WS          ws.WS
 	credentials Credentials
 }
 

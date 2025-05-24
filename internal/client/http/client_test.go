@@ -74,7 +74,7 @@ func TestDo(t *testing.T) {
 }
 
 func TestSetAuthHeaders(t *testing.T) {
-	creds := &credentials{
+	creds := &Credentials{
 		key:    "test-key",
 		secret: "test-secret",
 	}

@@ -18,9 +18,12 @@ type Client interface {
 
 type Option func(*client) error
 
-func UseREST(key, secret string) Option {
+func WithREST(key, secret, baseURL string) Option {
 	return func(c *client) error {
-		httpClient, err := http.NewClient(key, secret)
+		httpClient, err := http.NewClient(
+			http.WithCredentials(key, secret),
+			http.WithBaseURL(baseURL),
+		)
 		if err != nil {
 			return e.WithPrefixError(err)
 		}
@@ -29,9 +32,11 @@ func UseREST(key, secret string) Option {
 	}
 }
 
-func UseWebSocket() Option {
+func WithWebSocket(baseURL string) Option {
 	return func(c *client) error {
-		websocketClient, err := websocket.NewClient()
+		websocketClient, err := websocket.NewClient(
+			websocket.WithBaseURL(baseURL),
+		)
 		if err != nil {
 			return e.WithPrefixError(err)
 		}
