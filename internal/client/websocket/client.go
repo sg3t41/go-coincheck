@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/sg3t41/go-coincheck/external/e"
+	"github.com/sg3t41/go-coincheck/internal/e"
 )
 
 type WebSocketClient interface {

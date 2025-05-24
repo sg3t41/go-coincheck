@@ -1,9 +1,9 @@
 package client
 
 import (
-	"github.com/sg3t41/go-coincheck/external/e"
 	"github.com/sg3t41/go-coincheck/internal/client/http"
 	"github.com/sg3t41/go-coincheck/internal/client/websocket"
+	"github.com/sg3t41/go-coincheck/internal/e"
 )
 
 type client struct {
