@@ -20,11 +20,8 @@ func init() {
 
 func main() {
 	client, err := coincheck.New(
-		// 認証情報を使用
 		coincheck.WithCredentials(key, secret),
-		// HTTP REST APIを使用
-		coincheck.WithHTTP(),
-		// WebSocket APIを使用
+		coincheck.WithREST(),
 		coincheck.WithWebSocket(),
 	)
 	if err != nil {
