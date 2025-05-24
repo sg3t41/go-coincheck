@@ -1,4 +1,4 @@
-package referencerate
+package cancelstatus
 
 import (
 	"context"
@@ -30,18 +30,39 @@ func (m *mockClient) Subscribe(ctx context.Context, channel string, in chan<- st
 
 /* MOCK ここまで */
 
-func TestReferenceRateGET(t *testing.T) {
+func TestCancelStatusGET(t *testing.T) {
 	tests := map[string]struct {
 		mockResponse string
 		want         *GetResponse
 		wantErr      bool
 	}{
-		"[正常系]": {
+		"[正常系]キャンセル済み": {
 			mockResponse: `{
-				"rate": "1234567.89"
+				"success": true,
+				"id": 12345,
+				"cancel": true,
+				"created_at": "2022-01-01T12:00:00Z"
 			}`,
 			want: &GetResponse{
-				Rate: "1234567.89",
+				Success:   true,
+				ID:        12345,
+				Cancel:    true,
+				CreatedAt: "2022-01-01T12:00:00Z",
+			},
+			wantErr: false,
+		},
+		"[正常系]未キャンセル": {
+			mockResponse: `{
+				"success": true,
+				"id": 67890,
+				"cancel": false,
+				"created_at": "2022-01-01T13:00:00Z"
+			}`,
+			want: &GetResponse{
+				Success:   true,
+				ID:        67890,
+				Cancel:    false,
+				CreatedAt: "2022-01-01T13:00:00Z",
 			},
 			wantErr: false,
 		},
@@ -50,24 +71,15 @@ func TestReferenceRateGET(t *testing.T) {
 			want:         nil,
 			wantErr:      true,
 		},
-		"[正常系]空文字列": {
-			mockResponse: `{
-				"rate": ""
-			}`,
-			want: &GetResponse{
-				Rate: "",
-			},
-			wantErr: false,
-		},
 	}
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			client := &mockClient{mockResponse: tt.mockResponse}
-			refRate := New(client)
+			cstatus := New(client)
 
 			ctx := context.Background()
-			got, err := refRate.GET(ctx, "btc_jpy")
+			got, err := cstatus.GET(ctx, 12345)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("error expectation: wantErr=%v, got=%v (err=%v)", tt.wantErr, err != nil, err)
 			}
@@ -77,8 +89,17 @@ func TestReferenceRateGET(t *testing.T) {
 			if got == nil {
 				t.Fatalf("got == nil, want %+v", tt.want)
 			}
-			if got.Rate != tt.want.Rate {
-				t.Errorf("Rate: want=%v, got=%v", tt.want.Rate, got.Rate)
+			if got.Success != tt.want.Success {
+				t.Errorf("Success: want=%v, got=%v", tt.want.Success, got.Success)
+			}
+			if got.ID != tt.want.ID {
+				t.Errorf("ID: want=%v, got=%v", tt.want.ID, got.ID)
+			}
+			if got.Cancel != tt.want.Cancel {
+				t.Errorf("Cancel: want=%v, got=%v", tt.want.Cancel, got.Cancel)
+			}
+			if got.CreatedAt != tt.want.CreatedAt {
+				t.Errorf("CreatedAt: want=%v, got=%v", tt.want.CreatedAt, got.CreatedAt)
 			}
 		})
 	}
