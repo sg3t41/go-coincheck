@@ -6,12 +6,10 @@
 !go.sum
 
 
-!external/
-!external/**
+!pkg/
+!pkg/**
 
 !internal/
 !internal/**
 
-!example/
-!example/**
-
+!example.go
