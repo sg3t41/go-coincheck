@@ -13,3 +13,4 @@
 !internal/**
 
 !example.go
+!README.md
