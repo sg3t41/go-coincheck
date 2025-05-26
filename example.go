@@ -12,17 +12,14 @@ import (
 )
 
 func main() {
-	// 環境変数からAPIキー・シークレットを取得（または直書き可）
 	key := os.Getenv("COINCHECK_API_KEY")
 	secret := os.Getenv("COINCHECK_API_SECRET")
 
+	// Coincheckクライアントの初期化
 	client, err := coincheck.New(
-		// APIキーとシークレットキーを指定
-		coincheck.WithCredentials(key, secret),
-		// REST API使用
-		coincheck.WithREST(),
-		// WebSocket API使用
-		coincheck.WithWebSocket(),
+		coincheck.WithCredentials(key, secret), // APIキーとシークレットキーを指定
+		coincheck.WithREST(),                   // REST API使用
+		coincheck.WithWebSocket(),              // WebSocket API使用
 	)
 	if err != nil {
 		log.Fatalf("[ERROR] coincheck.New: %v", err)
@@ -32,7 +29,7 @@ func main() {
 
 	/* --- REST API --- */
 
-	// 1. ticker取得
+	// 現在のticker情報を取得
 	ticker, err := client.REST.Ticker(ctx, "btc_jpy")
 	if err != nil {
 		log.Printf("Ticker error: %v", err)
@@ -40,7 +37,7 @@ func main() {
 		fmt.Printf("Ticker: %+v\n", ticker)
 	}
 
-	// 2. アカウント情報
+	// アカウント情報の取得
 	acct, err := client.REST.Accounts(ctx)
 	if err != nil {
 		log.Printf("Accounts error: %v", err)
@@ -48,7 +45,7 @@ func main() {
 		fmt.Printf("Accounts: %+v\n", acct)
 	}
 
-	// 3. 残高
+	// 残高の取得
 	bal, err := client.REST.Balance(ctx)
 	if err != nil {
 		log.Printf("Balance error: %v", err)
@@ -56,7 +53,7 @@ func main() {
 		fmt.Printf("Balance: %+v\n", bal)
 	}
 
-	// 4. 取引所ステータス
+	// 取引所ステータスの取得
 	exst, err := client.REST.ExchangeStatus(ctx, "btc_jpy")
 	if err != nil {
 		log.Printf("ExchangeStatus error: %v", err)
@@ -64,7 +61,7 @@ func main() {
 		fmt.Printf("ExchangeStatus: %+v\n", exst)
 	}
 
-	// 5. 参考レート
+	// 参考レートの取得
 	ref, err := client.REST.ReferenceRate(ctx, "btc_jpy")
 	if err != nil {
 		log.Printf("ReferenceRate error: %v", err)
@@ -72,7 +69,7 @@ func main() {
 		fmt.Printf("ReferenceRate: %+v\n", ref)
 	}
 
-	// 6. 注文レート
+	// 指定条件での注文レートの取得
 	ordersRate, err := client.REST.OrdersRate(ctx, "btc_jpy", "buy", 1000000, 0.01)
 	if err != nil {
 		log.Printf("OrdersRate error: %v", err)
@@ -80,7 +77,7 @@ func main() {
 		fmt.Printf("OrdersRate: %+v\n", ordersRate)
 	}
 
-	// 7. 取引履歴
+	// 取引履歴の取得
 	trades, err := client.REST.Trades(ctx, "btc_jpy")
 	if err != nil {
 		log.Printf("Trades error: %v", err)
@@ -88,7 +85,7 @@ func main() {
 		fmt.Printf("Trades: %+v\n", trades)
 	}
 
-	// 8. 板情報
+	// 板情報の取得
 	orderBooks, err := client.REST.OrderBooks(ctx, "btc_jpy")
 	if err != nil {
 		log.Printf("OrderBooks error: %v", err)
@@ -96,7 +93,7 @@ func main() {
 		fmt.Printf("OrderBooks: %+v\n", orderBooks)
 	}
 
-	// 9. 取引履歴（簡易）
+	// 取引履歴（簡易）の取得
 	transactions, err := client.REST.Transactions(ctx)
 	if err != nil {
 		log.Printf("Transactions error: %v", err)
@@ -104,7 +101,7 @@ func main() {
 		fmt.Printf("Transactions: %+v\n", transactions)
 	}
 
-	// 10. 取引履歴（ページネーション）
+	// 取引履歴（ページネーション）の取得
 	transactionsPag, err := client.REST.TransactionsPagination(ctx, 10, "desc", nil, nil)
 	if err != nil {
 		log.Printf("TransactionsPagination error: %v", err)
@@ -112,7 +109,7 @@ func main() {
 		fmt.Printf("TransactionsPagination: %+v\n", transactionsPag)
 	}
 
-	// 11. 未約定注文一覧
+	// 未約定注文一覧の取得
 	openOrders, err := client.REST.OpenOrders(ctx)
 	if err != nil {
 		log.Printf("OpenOrders error: %v", err)
@@ -120,7 +117,7 @@ func main() {
 		fmt.Printf("OpenOrders: %+v\n", openOrders)
 	}
 
-	// 12. 指定IDの注文取得
+	// 注文IDを指定して注文情報を取得
 	order, err := client.REST.GetOrder(ctx, 123456)
 	if err != nil {
 		log.Printf("GetOrder error: %v", err)
@@ -128,7 +125,7 @@ func main() {
 		fmt.Printf("GetOrder: %+v\n", order)
 	}
 
-	// 13. 新規注文
+	// 新規注文
 	createOrder, err := client.REST.CreateOrder(ctx, "btc_jpy", "buy", 1000000, 0.01)
 	if err != nil {
 		log.Printf("CreateOrder error: %v", err)
@@ -136,7 +133,7 @@ func main() {
 		fmt.Printf("CreateOrder: %+v\n", createOrder)
 	}
 
-	// 14. 注文キャンセル
+	// 注文キャンセル
 	cancelOrder, err := client.REST.CancelOrder(ctx, 123456)
 	if err != nil {
 		log.Printf("CancelOrder error: %v", err)
@@ -144,7 +141,7 @@ func main() {
 		fmt.Printf("CancelOrder: %+v\n", cancelOrder)
 	}
 
-	// 15. キャンセルステータス
+	// キャンセルステータスの取得
 	cancelStatus, err := client.REST.CancelStatus(ctx, 123456)
 	if err != nil {
 		log.Printf("CancelStatus error: %v", err)
@@ -167,7 +164,7 @@ func main() {
 		cancel()
 	}()
 
-	// 板(OrderBook)の購読
+	// 板(OrderBook)のリアルタイム購読
 	obCh, err := client.WS.Orderbook(wsCtx, "btc_jpy")
 	if err != nil {
 		log.Printf("WS.Orderbook error: %v", err)
@@ -180,7 +177,7 @@ func main() {
 		}()
 	}
 
-	// 成行約定(Trades)の購読
+	// 成行約定(Trades)のリアルタイム購読
 	tradesCh, err := client.WS.Trades(wsCtx, "btc_jpy")
 	if err != nil {
 		log.Printf("WS.Trades error: %v", err)
