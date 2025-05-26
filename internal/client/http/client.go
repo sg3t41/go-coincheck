@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/sg3t41/go-coincheck/internal/comm"
 	"github.com/sg3t41/go-coincheck/internal/e"
 )
 
@@ -25,44 +25,8 @@ type httpClient struct {
 	credentials *Credentials
 }
 
-type Option func(*httpClient) error
-
-func WithCredentials(key, secret string) Option {
-	return func(hc *httpClient) error {
-		// TODO fix
-		switch true {
-		case key == "" && secret == "":
-			return e.WithPrefixError(errors.New("認証情報のkeyとsecretが空です"))
-		case key == "":
-			return e.WithPrefixError(errors.New("認証情報のkeyが空です"))
-		case secret == "":
-			return e.WithPrefixError(errors.New("認証情報のsecretが空です"))
-		default:
-			crd := &Credentials{key, secret}
-			hc.credentials = crd
-			return nil
-		}
-	}
-}
-
-func WithBaseURL(strURL string) Option {
-	return func(hc *httpClient) error {
-		if strURL == "" {
-			return e.WithPrefixError(errors.New("REST APIのベースURLが空です")) // TODO fix
-		}
-
-		baseURL, err := url.Parse(strURL)
-		if err != nil {
-			return e.WithPrefixError(err)
-		}
-
-		hc.baseURL = baseURL
-		return nil
-	}
-}
-
 func NewClient(opts ...Option) (HTTPClient, error) {
-	defaultBaseURL, err := url.Parse("https://coincheck.com")
+	defaultBaseURL, err := url.Parse(comm.HTTP_API_BASE_URL)
 	if err != nil {
 		return nil, e.WithPrefixError(err)
 	}

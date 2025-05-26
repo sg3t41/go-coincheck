@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/sg3t41/go-coincheck/internal/comm"
 	"github.com/sg3t41/go-coincheck/internal/e"
 )
 
@@ -44,7 +45,7 @@ func WithBaseURL(strURL string) Option {
 }
 
 func NewClient(opts ...Option) (WebSocketClient, error) {
-	defaultURL, err := url.Parse("wss://ws-api.coincheck.com/")
+	defaultURL, err := url.Parse(comm.WEBSOCKET_API_URL)
 	if err != nil {
 		return nil, e.WithPrefixError(err)
 	}
