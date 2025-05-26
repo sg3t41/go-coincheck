@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -25,23 +24,6 @@ type webSocketClient struct {
 	conn      *websocket.Conn
 	mu        sync.Mutex
 	connected bool
-}
-
-type Option func(*webSocketClient) error
-
-func WithBaseURL(strURL string) Option {
-	return func(wsc *webSocketClient) error {
-		if strURL == "" {
-			return e.WithPrefixError(errors.New("WebSocketのベースURLが空です"))
-		}
-		url, err := url.Parse(strURL)
-		if err != nil {
-			return e.WithPrefixError(err)
-		}
-
-		wsc.url = url
-		return nil
-	}
 }
 
 func NewClient(opts ...Option) (WebSocketClient, error) {
