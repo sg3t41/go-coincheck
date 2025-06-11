@@ -11,7 +11,7 @@ import (
 var endpoint = "/api/exchange_status"
 
 type ExchangeStatus interface {
-	GET(ctx context.Context, pair string) (*GetReponse, error)
+	GET(ctx context.Context, pair string) (*GetResponse, error)
 }
 
 type exchangeStatus struct {
@@ -28,7 +28,7 @@ type GetExchangeStatus struct {
 }
 
 // ExchangeStatus は取引所のステータス情報
-type GetReponse struct {
+type GetResponse struct {
 	Pair         string       `json:"pair"`
 	Status       string       `json:"status"`
 	Timestamp    int64        `json:"timestamp"`
@@ -42,7 +42,7 @@ type Availability struct {
 	Cancel      bool `json:"cancel"`
 }
 
-func (es exchangeStatus) GET(ctx context.Context, pair string) (*GetReponse, error) {
+func (es exchangeStatus) GET(ctx context.Context, pair string) (*GetResponse, error) {
 	req, err := es.client.CreateRequest(ctx, http_client.RequestInput{
 		Method: http.MethodGet,
 		Path:   endpoint,
@@ -54,7 +54,7 @@ func (es exchangeStatus) GET(ctx context.Context, pair string) (*GetReponse, err
 		return nil, err
 	}
 
-	var res GetReponse
+	var res GetResponse
 	if err := es.client.Do(req, &res); err != nil {
 		return nil, err
 	}

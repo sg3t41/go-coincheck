@@ -43,7 +43,7 @@ func mustParseTime(t *testing.T, s string) time.Time {
 func TestTransactionsGET(t *testing.T) {
 	tests := map[string]struct {
 		mockResponse string
-		want         *GetReponse
+		want         *GetResponse
 		wantErr      bool
 	}{
 		"[正常系]複数取引": {
@@ -76,7 +76,7 @@ func TestTransactionsGET(t *testing.T) {
 					}
 				]
 			}`,
-			want: &GetReponse{
+			want: &GetResponse{
 				Success: true,
 				Transactions: []Transaction{
 					{
@@ -112,7 +112,7 @@ func TestTransactionsGET(t *testing.T) {
 				"success": true,
 				"transactions": []
 			}`,
-			want: &GetReponse{
+			want: &GetResponse{
 				Success:      true,
 				Transactions: []Transaction{},
 			},

@@ -33,7 +33,7 @@ func (m *mockClient) Subscribe(ctx context.Context, channel string, in chan<- st
 func TestExchangeStatusGET(t *testing.T) {
 	tests := map[string]struct {
 		mockResponse string
-		want         *GetReponse
+		want         *GetResponse
 		wantErr      bool
 	}{
 		"[正常系]": {
@@ -47,7 +47,7 @@ func TestExchangeStatusGET(t *testing.T) {
 					"cancel": true
 				}
 			}`,
-			want: &GetReponse{
+			want: &GetResponse{
 				Pair:      "btc_jpy",
 				Status:    "OK",
 				Timestamp: 1620000000,
@@ -75,7 +75,7 @@ func TestExchangeStatusGET(t *testing.T) {
 					"cancel": false
 				}
 			}`,
-			want: &GetReponse{
+			want: &GetResponse{
 				Pair:      "eth_jpy",
 				Status:    "NO",
 				Timestamp: 1000000000,

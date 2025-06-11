@@ -22,7 +22,8 @@ func main() {
 		coincheck.WithWebSocket(),              // WebSocket API使用
 	)
 	if err != nil {
-		log.Fatalf("[ERROR] coincheck.New: %v", err)
+		log.Printf("[ERROR] coincheck.New: %v", err)
+		return
 	}
 
 	ctx := context.Background()
@@ -117,37 +118,41 @@ func main() {
 		fmt.Printf("OpenOrders: %+v\n", openOrders)
 	}
 
-	// 注文IDを指定して注文情報を取得
-	order, err := client.REST.GetOrder(ctx, 123456)
-	if err != nil {
-		log.Printf("GetOrder error: %v", err)
-	} else {
-		fmt.Printf("GetOrder: %+v\n", order)
-	}
+	// 注文IDを指定して注文情報を取得（サンプルID）
+	// 実際の使用時は有効な注文IDを指定してください
+	// order, err := client.REST.GetOrder(ctx, yourOrderID)
+	// if err != nil {
+	// 	log.Printf("GetOrder error: %v", err)
+	// } else {
+	// 	fmt.Printf("GetOrder: %+v\n", order)
+	// }
 
-	// 新規注文
-	createOrder, err := client.REST.CreateOrder(ctx, "btc_jpy", "buy", 1000000, 0.01)
-	if err != nil {
-		log.Printf("CreateOrder error: %v", err)
-	} else {
-		fmt.Printf("CreateOrder: %+v\n", createOrder)
-	}
+	// 新規注文（サンプル）
+	// 実際の使用時は適切なレートと数量を指定してください
+	// createOrder, err := client.REST.CreateOrder(ctx, "btc_jpy", "buy", yourRate, yourAmount)
+	// if err != nil {
+	// 	log.Printf("CreateOrder error: %v", err)
+	// } else {
+	// 	fmt.Printf("CreateOrder: %+v\n", createOrder)
+	// }
 
-	// 注文キャンセル
-	cancelOrder, err := client.REST.CancelOrder(ctx, 123456)
-	if err != nil {
-		log.Printf("CancelOrder error: %v", err)
-	} else {
-		fmt.Printf("CancelOrder: %+v\n", cancelOrder)
-	}
+	// 注文キャンセル（サンプル）
+	// 実際の使用時は有効な注文IDを指定してください
+	// cancelOrder, err := client.REST.CancelOrder(ctx, yourOrderID)
+	// if err != nil {
+	// 	log.Printf("CancelOrder error: %v", err)
+	// } else {
+	// 	fmt.Printf("CancelOrder: %+v\n", cancelOrder)
+	// }
 
-	// キャンセルステータスの取得
-	cancelStatus, err := client.REST.CancelStatus(ctx, 123456)
-	if err != nil {
-		log.Printf("CancelStatus error: %v", err)
-	} else {
-		fmt.Printf("CancelStatus: %+v\n", cancelStatus)
-	}
+	// キャンセルステータスの取得（サンプル）
+	// 実際の使用時は有効な注文IDを指定してください
+	// cancelStatus, err := client.REST.CancelStatus(ctx, yourOrderID)
+	// if err != nil {
+	// 	log.Printf("CancelStatus error: %v", err)
+	// } else {
+	// 	fmt.Printf("CancelStatus: %+v\n", cancelStatus)
+	// }
 
 	/* --- WebSocket API --- */
 
@@ -170,10 +175,19 @@ func main() {
 		log.Printf("WS.Orderbook error: %v", err)
 	} else {
 		go func() {
-			for msg := range obCh {
-				fmt.Printf("[WS Orderbook] message: %s\n", msg)
+			for {
+				select {
+				case msg, ok := <-obCh:
+					if !ok {
+						fmt.Println("[WS Orderbook] channel closed")
+						return
+					}
+					fmt.Printf("[WS Orderbook] message: %s\n", msg)
+				case <-wsCtx.Done():
+					fmt.Println("[WS Orderbook] context cancelled")
+					return
+				}
 			}
-			fmt.Println("[WS Orderbook] channel closed")
 		}()
 	}
 
@@ -183,10 +197,19 @@ func main() {
 		log.Printf("WS.Trades error: %v", err)
 	} else {
 		go func() {
-			for msg := range tradesCh {
-				fmt.Printf("[WS Trades] message: %s\n", msg)
+			for {
+				select {
+				case msg, ok := <-tradesCh:
+					if !ok {
+						fmt.Println("[WS Trades] channel closed")
+						return
+					}
+					fmt.Printf("[WS Trades] message: %s\n", msg)
+				case <-wsCtx.Done():
+					fmt.Println("[WS Trades] context cancelled")
+					return
+				}
 			}
-			fmt.Println("[WS Trades] channel closed")
 		}()
 	}
 

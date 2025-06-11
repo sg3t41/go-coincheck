@@ -48,16 +48,23 @@ func (t transactionsPagination) GET(
 	startingAfter, endingBefore *int,
 ) (*GetResponse, error) {
 
+	queryParam := map[string]string{
+		"limit": strconv.Itoa(limit),
+		"order": order,
+	}
+	
+	if startingAfter != nil {
+		queryParam["starting_after"] = strconv.Itoa(*startingAfter)
+	}
+	if endingBefore != nil {
+		queryParam["ending_before"] = strconv.Itoa(*endingBefore)
+	}
+
 	req, err := t.client.CreateRequest(ctx, http_client.RequestInput{
-		Method: http.MethodGet,
-		Path:   "/api/exchange/orders/transactions_pagination",
-		QueryParam: map[string]string{
-			"limit": strconv.Itoa(limit),
-			"order": order,
-			// "starting_after": startingAfter,
-			// "ending_before":  endingBefore,
-		},
-		Private: true,
+		Method:     http.MethodGet,
+		Path:       "/api/exchange/orders/transactions_pagination",
+		QueryParam: queryParam,
+		Private:    true,
 	})
 	if err != nil {
 		return nil, err

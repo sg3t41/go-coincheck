@@ -16,6 +16,8 @@ import (
 type Orders interface {
 	// 新規注文
 	POST(ctx context.Context, pair, orderType string, rate, amount float64) (*PostResponse, error)
+	// 新規注文（オプションパラメータ付き）
+	POSTWithOptions(ctx context.Context, params CreateOrderParams) (*PostResponse, error)
 	DELETE(ctx context.Context, id int) (*DeleteResponse, error)
 	GET(ctx context.Context, id int) (*GetResponse, error)
 }
@@ -28,6 +30,17 @@ func New(client client.Client) Orders {
 	return &orders{
 		client,
 	}
+}
+
+// CreateOrderParams は注文作成時のパラメータ
+type CreateOrderParams struct {
+	Pair            string   `json:"pair"`                       // 取引ペア (必須)
+	OrderType       string   `json:"order_type"`                 // 注文タイプ (必須)
+	Rate            *float64 `json:"rate,omitempty"`             // 注文レート (指値注文時は必須)
+	Amount          *float64 `json:"amount,omitempty"`           // 注文量
+	MarketBuyAmount *float64 `json:"market_buy_amount,omitempty"` // 成行買い注文時の日本円額
+	StopLossRate    *float64 `json:"stop_loss_rate,omitempty"`   // 逆指値レート
+	TimeInForce     *string  `json:"time_in_force,omitempty"`    // 注文有効期限 ("good_til_cancelled", "immediate_or_cancel", "fill_or_kill")
 }
 
 // GetOrder は注文のステータスを持つ構造体
@@ -94,14 +107,36 @@ type PostResponse struct {
 }
 
 func (o orders) POST(ctx context.Context, pair, orderType string, rate, amount float64) (*PostResponse, error) {
-	bodyJSON, err := json.Marshal(
-		map[string]string{
-			"order_type": orderType,
-			"amount":     strconv.FormatFloat(amount, 'f', -1, 64),
-			"rate":       strconv.FormatFloat(rate, 'f', -1, 64),
-			"pair":       pair,
-		},
-	)
+	return o.POSTWithOptions(ctx, CreateOrderParams{
+		Pair:      pair,
+		OrderType: orderType,
+		Rate:      &rate,
+		Amount:    &amount,
+	})
+}
+
+func (o orders) POSTWithOptions(ctx context.Context, params CreateOrderParams) (*PostResponse, error) {
+	body := make(map[string]string)
+	body["pair"] = params.Pair
+	body["order_type"] = params.OrderType
+	
+	if params.Rate != nil {
+		body["rate"] = strconv.FormatFloat(*params.Rate, 'f', -1, 64)
+	}
+	if params.Amount != nil {
+		body["amount"] = strconv.FormatFloat(*params.Amount, 'f', -1, 64)
+	}
+	if params.MarketBuyAmount != nil {
+		body["market_buy_amount"] = strconv.FormatFloat(*params.MarketBuyAmount, 'f', -1, 64)
+	}
+	if params.StopLossRate != nil {
+		body["stop_loss_rate"] = strconv.FormatFloat(*params.StopLossRate, 'f', -1, 64)
+	}
+	if params.TimeInForce != nil {
+		body["time_in_force"] = *params.TimeInForce
+	}
+	
+	bodyJSON, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}

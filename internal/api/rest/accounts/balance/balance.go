@@ -9,7 +9,7 @@ import (
 )
 
 type Balance interface {
-	GET(context.Context) (*GetReponse, error)
+	GET(context.Context) (*GetResponse, error)
 }
 
 type balance struct {
@@ -21,7 +21,7 @@ func New(client client.Client) Balance {
 }
 
 // Balance はアカウントの残高情報を持つ構造体
-type GetReponse struct {
+type GetResponse struct {
 	Success      bool   `json:"success"`
 	JPY          string `json:"jpy"`
 	BTC          string `json:"btc"`
@@ -39,7 +39,7 @@ type GetReponse struct {
 	BTCTsumitate string `json:"btc_tsumitate"`
 }
 
-func (t balance) GET(ctx context.Context) (*GetReponse, error) {
+func (t balance) GET(ctx context.Context) (*GetResponse, error) {
 	req, err := t.client.CreateRequest(ctx, http_client.RequestInput{
 		Method:  http.MethodGet,
 		Path:    "/api/accounts/balance",
@@ -49,7 +49,7 @@ func (t balance) GET(ctx context.Context) (*GetReponse, error) {
 		return nil, err
 	}
 
-	var res GetReponse
+	var res GetResponse
 	if err := t.client.Do(req, &res); err != nil {
 		return nil, err
 	}

@@ -23,14 +23,14 @@ type REST interface {
 	// rests
 	Ticker(ctx context.Context, pair string) (*ticker.GetResponse, error)
 	Accounts(context.Context) (*accounts.GetResponse, error)
-	Balance(context.Context) (*balance.GetReponse, error)
-	ExchangeStatus(ctx context.Context, pair string) (*exchangestatus.GetReponse, error)
+	Balance(context.Context) (*balance.GetResponse, error)
+	ExchangeStatus(ctx context.Context, pair string) (*exchangestatus.GetResponse, error)
 	ReferenceRate(ctx context.Context, pair string) (*referencerate.GetResponse, error)
 	OrdersRate(ctx context.Context, pair, orderType string, price, amount float64) (*ordersrate.GetResponse, error)
 
 	Trades(ctx context.Context, pair string) (*trades.GetResponse, error)
 	OrderBooks(ctx context.Context, pair string) (*orderbooks.GetResponse, error)
-	Transactions(context.Context) (*transactions.GetReponse, error)
+	Transactions(context.Context) (*transactions.GetResponse, error)
 	TransactionsPagination(ctx context.Context, limit int, order string, startingAfter, endingBefore *int) (*transactionspagination.GetResponse, error)
 	OpenOrders(context.Context) (*opens.GetResponse, error)
 
@@ -76,6 +76,7 @@ func New(key, secret string) (REST, error) {
 		trades:                  trades.New(c),
 		transactions:            transactions.New(c),
 		transactions_pagination: transactionspagination.New(c),
+		order_books:             orderbooks.New(c),
 		reference_rate:          referencerate.New(c),
 		ticker:                  ticker.New(c),
 	}, nil

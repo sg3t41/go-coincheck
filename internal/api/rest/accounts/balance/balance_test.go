@@ -34,7 +34,7 @@ func (m *mockClient) Subscribe(ctx context.Context, channel string, in chan<- st
 func TestBalanceGET(t *testing.T) {
 	tests := map[string]struct {
 		mockResponse string
-		want         *GetReponse
+		want         *GetResponse
 		wantErr      bool
 	}{
 		"[正常系]全項目": {
@@ -55,7 +55,7 @@ func TestBalanceGET(t *testing.T) {
 				"jpy_tsumitate": "6000",
 				"btc_tsumitate": "0.06"
 			}`,
-			want: &GetReponse{
+			want: &GetResponse{
 				Success:      true,
 				JPY:          "123456.78",
 				BTC:          "0.12345678",
@@ -92,7 +92,7 @@ func TestBalanceGET(t *testing.T) {
 				"jpy_tsumitate": "0",
 				"btc_tsumitate": "0"
 			}`,
-			want: &GetReponse{
+			want: &GetResponse{
 				Success:      true,
 				JPY:          "1",
 				BTC:          "0",

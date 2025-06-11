@@ -10,7 +10,7 @@ import (
 )
 
 type Transactions interface {
-	GET(ctx context.Context) (*GetReponse, error)
+	GET(ctx context.Context) (*GetResponse, error)
 }
 
 type transactions struct {
@@ -44,12 +44,12 @@ type Funds struct {
 }
 
 // GetTransactions は取引履歴のレスポンスを表す構造体
-type GetReponse struct {
+type GetResponse struct {
 	Success      bool          `json:"success"`      // リクエストの成功を示す
 	Transactions []Transaction `json:"transactions"` // 取引履歴
 }
 
-func (t transactions) GET(ctx context.Context) (*GetReponse, error) {
+func (t transactions) GET(ctx context.Context) (*GetResponse, error) {
 	req, err := t.client.CreateRequest(ctx, http_client.RequestInput{
 		Method:  http.MethodGet,
 		Path:    "/api/exchange/orders/transactions",
@@ -59,7 +59,7 @@ func (t transactions) GET(ctx context.Context) (*GetReponse, error) {
 		return nil, err
 	}
 
-	var res GetReponse
+	var res GetResponse
 	if err := t.client.Do(req, &res); err != nil {
 		return nil, err
 	}
