@@ -1,4 +1,4 @@
-module github.com/sg3t41/go-coincheck
+module github.com/sg3t41/go-coincheck/v2
 
 go 1.24.1
 
